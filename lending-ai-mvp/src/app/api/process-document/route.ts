@@ -1,3 +1,4 @@
+// src/app/api/process-document/route.ts - FIXED VERSION
 import { NextRequest, NextResponse } from 'next/server';
 import { visionService } from '@/lib/vision';
 import { geminiService } from '@/lib/gemini';
@@ -17,12 +18,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Extract text with Google Vision
+    console.log('Starting Vision API extraction for:', fileName);
     const extractedText = await visionService.extractTextFromGCS(gcsUri);
     
     // Step 2: Classify document type
     const documentType = classifyDocument(fileName, extractedText.fullText);
     
     // Step 3: Process with Gemini AI
+    console.log('Starting Gemini AI analysis for document type:', documentType);
     const loanData = await geminiService.extractLoanData(
       extractedText.fullText,
       documentType,
@@ -58,12 +61,17 @@ export async function POST(request: NextRequest) {
       .eq('file_name', fileName)
       .eq('loan_application_id', loanId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('Database update error:', updateError);
+      throw updateError;
+    }
 
     // Step 6: Update loan application with aggregated data
     await updateLoanApplication(loanId, loanData, riskAssessment);
 
     const totalTime = Date.now() - startTime;
+
+    console.log(`Document processing completed in ${totalTime}ms`);
 
     return NextResponse.json({
       success: true,
@@ -150,14 +158,18 @@ async function updateLoanApplication(loanId: string, loanData: any, riskAssessme
       monthly_debts: loanData.debts?.total_monthly_debts,
       liquid_assets: loanData.assets?.total_liquid_assets,
       credit_score: loanData.credit_info?.credit_score,
-      status: 'in_review',
+      status: 'review',
       updated_at: new Date().toISOString()
     };
 
-    await supabase
+    const { error } = await supabase
       .from('loan_applications')
       .update(updateData)
       .eq('id', loanId);
+
+    if (error) {
+      console.error('Error updating loan application:', error);
+    }
 
   } catch (error) {
     console.error('Error updating loan application:', error);

@@ -1,6 +1,7 @@
+// src/app/api/extract-text/route.ts - FIXED VERSION
 import { NextRequest, NextResponse } from 'next/server';
 import { visionService } from '@/lib/vision';
-import { supabase } from '@/app/supabase';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -14,6 +15,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log('Starting text extraction for document:', documentId);
 
     // Fetch the file from Supabase Storage
     const response = await fetch(fileUrl);
@@ -35,13 +38,18 @@ export async function POST(request: NextRequest) {
       .from('documents')
       .update({
         extracted_text: extractedText.fullText,
-        vision_api_data: {
+        vision_api_response: {
           confidence: extractedText.confidence,
           processing_time_ms: extractedText.processingTime,
           document_quality: extractedText.documentQuality,
+          pages: extractedText.pages,
+          detected_languages: extractedText.detectedLanguages,
           extraction_timestamp: new Date().toISOString()
         },
+        ocr_confidence: extractedText.confidence,
         processing_status: 'completed',
+        processing_time_ms: extractedText.processingTime,
+        text_quality_score: extractedText.confidence,
         processed_at: new Date().toISOString()
       })
       .eq('id', documentId)
@@ -49,10 +57,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (updateError) {
+      console.error('Database update error:', updateError);
       throw new Error(`Failed to update document: ${updateError.message}`);
     }
 
     const totalTime = Date.now() - startTime;
+
+    console.log(`Text extraction completed in ${totalTime}ms`);
 
     return NextResponse.json({
       success: true,
@@ -60,6 +71,7 @@ export async function POST(request: NextRequest) {
       extractedText: extractedText.fullText,
       metadata: {
         confidence: extractedText.confidence,
+        pages: extractedText.pages,
         documentQuality: extractedText.documentQuality,
         processingTime: extractedText.processingTime,
         totalTime
@@ -69,18 +81,21 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Text extraction API error:', error);
     
-    // Update document status to failed
-    if (request.json) {
-      const { documentId } = await request.json();
-      if (documentId) {
+    // Update document status to failed if we have the documentId
+    try {
+      const body = await request.json();
+      if (body.documentId) {
         await supabase
           .from('documents')
           .update({
             processing_status: 'failed',
+            error_message: error.message,
             processed_at: new Date().toISOString()
           })
-          .eq('id', documentId);
+          .eq('id', body.documentId);
       }
+    } catch (jsonError) {
+      // Request body already consumed, ignore
     }
     
     return NextResponse.json(
