@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Document Upload</title>
+</head>
+<body>
+    <h2>Test Document Upload</h2>
+    <form action="http://localhost:3000/api/extract-text" method="post" enctype="multipart/form-data">
+        <div style="margin: 10px;">
+            <label>Select file (PDF, PNG, JPG, TIFF, WebP):</label><br>
+            <input type="file" name="file" accept=".pdf,.png,.jpg,.jpeg,.tiff,.webp" required>
+        </div>
+        <div style="margin: 10px;">
+            <label>Document Type:</label><br>
+            <select name="documentType">
+                <option value="pay_stub">Pay Stub</option>
+                <option value="bank_statement">Bank Statement</option>
+                <option value="tax_return">Tax Return</option>
+                <option value="credit_report">Credit Report</option>
+            </select>
+        </div>
+        <div style="margin: 10px;">
+            <button type="submit">Upload & Process</button>
+        </div>
+    </form>
+</body>
+</html>

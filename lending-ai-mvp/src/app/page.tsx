@@ -1,12 +1,17 @@
 import Link from 'next/link';
+import FileUpload from '@/components/FileUpload';
+import Navigation from '@/components/Navigation';
+import ApiStatus from '@/components/ApiStatus';
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <Navigation />
+      
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 py-24">
-          <div className="text-center">
+          <div className="text-center mb-12">
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 LendingAI
@@ -18,21 +23,31 @@ export default function HomePage() {
             <p className="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
               Transform 3-day loan processing into 3 minutes. Save $1,000 per loan with Google's AI technology.
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link 
-                href="/demo"
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
-              >
-                🚀 Watch Live Demo
-              </Link>
-              <Link 
-                href="/dashboard"
-                className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors border-2 border-blue-600"
-              >
-                📊 View Dashboard
-              </Link>
-            </div>
+          </div>
+
+          {/* Interactive Upload Section */}
+          <div className="mb-12">
+            <FileUpload />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <Link 
+              href="/demo"
+              className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg"
+            >
+              🚀 Watch Live Demo
+            </Link>
+            <Link 
+              href="/dashboard"
+              className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition-colors border-2 border-blue-600"
+            >
+              📊 View Dashboard
+            </Link>
+          </div>
+
+          {/* API Status Section */}
+          <div className="max-w-md mx-auto">
+            <ApiStatus />
           </div>
         </div>
       </div>
